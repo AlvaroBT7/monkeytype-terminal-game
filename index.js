@@ -47,7 +47,8 @@ async function askPhrases() {
       if (error) reject(error);
       else {
         const phraseIsCorrect = phraseToString.toString().trim() === phrase;
-        if (phraseIsCorrect) resolve(timer);
+        if (phraseIsCorrect)
+          resolve((phrase.split().length / timer) * 1000 * 60);
         else
           reject(
             new MonkeyError({
@@ -70,8 +71,8 @@ async function monkeyType(times) {
     try {
       console.log(`
       `);
-      const result = await askPhrases();
-      console.log(`You typed in ${result} seconds`);
+      const result = new Number((await askPhrases()).toFixed(2));
+      console.log(`You tipped ${result} WPM`);
       attempts.push(result);
     } catch (error) {
       if (error instanceof MonkeyError && !(error instanceof ExitMonkeyError)) {
@@ -89,35 +90,16 @@ async function monkeyType(times) {
   console.log(`Your attempts: [${attempts}]`);
   let totalAttempts = 0;
   attempts.forEach((attemp) => (totalAttempts += attemp));
-  return `You have a average of ${
-    totalAttempts / attempts.length
-  } milisecconds`;
+  return `You have a average of ${totalAttempts / attempts.length} WPM`;
 }
 
-(async function main() {
-  console.log("Cuantos frases en la partida quieres ? (default 3) ");
-  let times;
-  await new Promise((resolve, reject) => {
-    process.stdin.on("data", (data) => {
-      try {
-        times = Number(data);
-        console.log(`Cargando ${times} intentos...`);
-        resolve(null);
-      } catch {
-        console.log("Cargando intentos 3 (por defecto)...");
-        reject(new Error("Invalid argument given !"));
-      }
-    });
+monkeyType(3)
+  .then((result) => {
+    console.log(result);
+    console.log("");
+    console.log(`Press [Control] + [C] to exit`);
+  })
+  .catch((error) => {
+    process.stdin.pause();
+    console.error(error);
   });
-  console.log(process.stdin);
-  monkeyType(times || 3)
-    .then((result) => {
-      console.log(result);
-      console.log("");
-      console.log(`Press [Control] + [C] to exit`);
-    })
-    .catch((error) => {
-      process.stdin.pause();
-      console.error(error);
-    });
-})();
